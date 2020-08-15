@@ -4,7 +4,23 @@ const sellerUser = require("../models/seller");
 const buyerUser = require("../models/buyer")
 const app = express();
 
+app.get("/", async (req, res) => {
+  try {
+        const seller = await sellerUser.findById({ _id : req.session.userid })
+        if(seller){
+          return res.status(200).json({ sucess : true , user : seller })
+        }
 
+        const buyer = await buyerUser.findById({ _id: req.session.userid })
+        if (buyer) {
+          return res.status(200).json({ sucess: true, user : buyer })
+        }
+
+      
+  } catch (error) {
+      res.status(500).json({ success : false , error : error.message })
+  }
+});
 
 //Seller register
 app.post("/registerSeller",async (req,res) => {

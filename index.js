@@ -16,7 +16,7 @@ const Auth = require("./routes/auth")
 const Address = require("./routes/addess")
 const addScrap = require("./routes/sellData")
 const foundUsers = require("./routes/users")
-const test = require("./routes/test")
+
 
 app.set('view engine','ejs')
 
@@ -47,7 +47,7 @@ app.use("/", foundUsers)
 app.use("/auth", Auth);
 // app.use("/seller-address", Address)
 app.use("/addscarp", addScrap)
-app.use("/tests", test);
+
 
 //PORT
 const port = process.env.PORT || 3000;

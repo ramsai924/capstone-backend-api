@@ -14,12 +14,11 @@ var storage = multer.diskStorage({
 
 var uploads = multer({ storage: storage }).single("images");
 
-//get all users Scrap data
+//get all users Scrap data (development)
 app.get("/getAllScrap",async (req,res) => {
     try {
        const scarpData = await sellData.find({ orderStatus : "active"}).populate([
-         { path: "userid", model: "seller_user_table", select: "-soldHistory" },
-         { path: "address", model: "address" },
+         { path: "userid", model: "seller_user_table", select: "-soldHistory" }
        ]);
 
        res.status(200).json({ success : true , scarpData })
