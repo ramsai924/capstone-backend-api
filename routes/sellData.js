@@ -56,4 +56,17 @@ app.post("/", uploads,async (req,res) => {
     }
 })
 
+
+//update scrap data
+app.post("/update/:id",uploads, async (req,res) => {
+    try {
+            const data = req.body;
+            data.image = req.file.path;
+            const updateScrap = await sellData.findByIdAndUpdate({ _id : req.params.id } , data , { new : true , runValidators : true })
+            res.status(200).json({ success : true , message : "scrape data updated success "})
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+})
+
 module.exports = app;

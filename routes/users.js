@@ -13,7 +13,7 @@ function auth(req,res,next){
   }
 }
 
-//getuser details
+//getuser details home page
 app.get("/", auth,async (req, res) => {
   try {
    
@@ -205,5 +205,19 @@ app.get("/completeOrder", auth, async (req,res) => {
     res.status(500).json({ success: false, error: error.message })
   }
 })
+
+
+//logout
+app.get("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      res.redirect("/");
+      return;
+    }
+
+    res.clearCookie("sid");
+    res.redirect("/welcome");
+  });
+});
 
 module.exports = app;
