@@ -26,10 +26,6 @@ const buyerschema = Schema({
             type : String,
             default : "buyer"
         },
-        acceptedOreders: {
-            type: [Schema.Types.ObjectId],
-            ref: "seller_table_data",
-        },
         completedOrders : {
             type : [Schema.Types.ObjectId],
             ref: "seller_table_data"

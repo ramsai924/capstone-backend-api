@@ -8,17 +8,20 @@ const db = require("./config/db")
 const bodyparser = require('body-parser')
 const session = require('express-session')
 const mongoose = require('mongoose')
+var cors = require('cors')
 const path = require('path')
 const MongoStore = require("connect-mongo")(session);
 
 //routes
 const Auth = require("./routes/auth")
-const Address = require("./routes/addess")
+
 const addScrap = require("./routes/sellData")
 const foundUsers = require("./routes/users")
 
 
 app.set('view engine','ejs')
+//cors
+app.use(cors())
 
 //set cookie
 app.use(
@@ -45,7 +48,6 @@ app.set('/public',express.static(path.join(__dirname,'public')))
 //use routes
 app.use("/", foundUsers)
 app.use("/auth", Auth);
-// app.use("/seller-address", Address)
 app.use("/addscarp", addScrap)
 
 
