@@ -1,6 +1,7 @@
 const express = require("express")
 const multer = require("multer")
 const path = require("path")
+const jwt = require("jsonwebtoken");
 const sellData = require("../models/seller_data_table")
 const app = express()
 
@@ -27,22 +28,25 @@ app.get("/getAllScrap",async (req,res) => {
     }
 })
 
-//get current user scrap data in profile page
-app.get("/getCurrentUser",async (req,res) => {
+//get current user scrap data in profile page(seller)
+app.get("/getCurrentUser/:tokenId",async (req,res) => {
     try {
         
-        if(req.session.userid){
-            const userScarpData = await sellData.find({ userid : req.session.userid }).populate({ path: "address", model: "address" });
-            return res.status(200).json({ success: true, userScarpData });
-        }else{
-            return res.status(400).json({ success: true, error : "Please login" });
-        }
+            const decode = await jwt.verify(req.params.tokenId, "jsontokensss");
+            const userScarpData = await sellData.find({ userid: decode.id }).populate({ path: "userid", model: "user_model" });
+            if(userScarpData.length > 0){
+                return res.status(200).json({ success: true, userScarpData });
+            }else{
+                return res.status(400).json({ success: false, Error : "User not set" });
+            }
+            
+        
     } catch (error) {
         res.status(500).json({ success : false , error : error.message })
     }
 })
 
-//add scrap data
+//add scrap data(seller)
 app.post("/", uploads,async (req,res) => {
     try {
           const data = req.body;

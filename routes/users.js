@@ -1,61 +1,70 @@
 const express = require("express");
 const sellerData = require("../models/seller_data_table")
+const jwt = require("jsonwebtoken");
+const userModel = require("../models/userAuth")
 const sellerUser = require("../models/seller")
 const acceptedOrder = require("../models/acceptedOrders")
 const Buyer = require("../models/buyer")
 const app = express();
 
-//redurect to login
-const redirectLogin = (req, res, next) => {
-  if (!req.session.userid) {
-    res.redirect("/welcome");
-  } else {
-    next();
-  }
-};
+// //redurect to login
+// const redirectLogin = (req, res, next) => {
+//   if (!req.session.userid) {
+//     res.redirect("/welcome");
+//   } else {
+//     next();
+//   }
+// };
 
-//redirect to home
-const redirectHome = (req, res, next) => {
-  if (req.session.userid) {
-    res.redirect("/");
-  } else {
-    next();
-  }
-};
+// //redirect to home
+// const redirectHome = (req, res, next) => {
+//   if (req.session.userid) {
+//     res.redirect("/");
+//   } else {
+//     next();
+//   }
+// };
 
 
 //getuser details home page
-app.get("/",redirectLogin,async (req, res) => {
+app.get("/:tokenId",async (req, res) => {
   try {
    
-    if(req.session.userid){
-      //seller
-      const seller = await sellerUser.findById({ _id: req.session.userid })
-        .populate({ path: "soldHistory", model: "seller_table_data" })
-      if (seller) {
-        const acceptedOrders = await acceptedOrder.find({ sellerid: req.session.userid }).populate([
-          { path: "soldDataId", model: "seller_table_data" },
-          { path: "buyerid", model: "buyer_user_model", select: "-completedOrders" }
-        ])
-        return res.status(200).json({ sucess: true, user: seller , acceptedOrders   })
-      }
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVmM2QyZmEzMmI5ODU5MDM1NGQ0NjQ0ZCIsImlhdCI6MTU5Nzg0NTk2MCwiZXhwIjoxNjAwNDM3OTYwfQ.GdxGEyGkabAt5vGyWWd3yXq-YIk28TN5ONDPU3eVOQ0"
+    const decode = await jwt.verify(req.params.tokenId, "jsontokensss");
 
-      //buyer
-      const buyer = await Buyer.findById({ _id: req.session.userid })
-        .populate([
-          { path: "completedOrders", model: "seller_user_table" }
-        ])
-      if (buyer) {
+    const user = await userModel.findById( { _id : decode.id })
+    
+    res.status(200).json( { user })
+
+    // if(req.session.userid){
+    //   //seller
+    //   const seller = await sellerUser.findById({ _id: req.session.userid })
+    //     .populate({ path: "soldHistory", model: "seller_table_data" })
+    //   if (seller) {
+    //     const acceptedOrders = await acceptedOrder.find({ sellerid: req.session.userid }).populate([
+    //       { path: "soldDataId", model: "seller_table_data" },
+    //       { path: "buyerid", model: "buyer_user_model", select: "-completedOrders" }
+    //     ])
+    //     return res.status(200).json({ sucess: true, user: seller , acceptedOrders   })
+    //   }
+
+    //   //buyer
+    //   const buyer = await Buyer.findById({ _id: req.session.userid })
+    //     .populate([
+    //       { path: "completedOrders", model: "seller_user_table" }
+    //     ])
+    //   if (buyer) {
         
-        const acceptedOrders = await acceptedOrder.find({ buyerid: req.session.userid }).populate([
-          { path: "soldDataId", model: "seller_table_data", populate: { path: "userid", model: "seller_user_table" } }
-        ]);
+    //     const acceptedOrders = await acceptedOrder.find({ buyerid: req.session.userid }).populate([
+    //       { path: "soldDataId", model: "seller_table_data", populate: { path: "userid", model: "seller_user_table" } }
+    //     ]);
 
-        return res.status(200).json({ sucess: true, user: buyer, acceptedOrders })
-      }
-    }else{
-      return res.status(400).json({ success : false , Error : "users not Set"})
-    }
+    //     return res.status(200).json({ sucess: true, user: buyer, acceptedOrders })
+    //   }
+    // }else{
+    //   return res.status(400).json({ success : false , Error : "users not Set"})
+    // }
 
 
   } catch (error) {
@@ -64,40 +73,55 @@ app.get("/",redirectLogin,async (req, res) => {
 });
 
 //profile
-app.get("/profile",async (req,res) => {
+app.get("/profile/:tokenId",async (req,res) => {
   try {
-    if (req.session.userid) {
-      const seller = await sellerUser.findById({ _id: req.session.userid })
-        .populate({ path: "soldHistory", model: "seller_table_data" })
-      if (seller) {
-        return res.status(200).json({ sucess: true, user: seller })
-      }
 
-      const buyer = await Buyer.findById({ _id: req.session.userid })
-        .populate([
-          { path: "completedOrders", model: "seller_table_data" }
+    const decode = await jwt.verify(req.params.tokenId, "jsontokensss");
+
+    const user = await userModel.findById({ _id: decode.id }).populate([
+          { path: "history", model: "seller_table_data" }
         ])
-      if (buyer) {
-        return res.status(200).json({ sucess: true, user: buyer })
-      }
-    } else {
-      return res.status(400).json({ success: false, Error: "users not Set" })
-    }
+
+    res.status(200).json({ user })
+    // if (req.session.userid) {
+    //   const seller = await sellerUser.findById({ _id: req.session.userid })
+    //     .populate({ path: "soldHistory", model: "seller_table_data" })
+    //   if (seller) {
+    //     return res.status(200).json({ sucess: true, user: seller })
+    //   }
+
+    //   const buyer = await Buyer.findById({ _id: req.session.userid })
+    //     .populate([
+    //       { path: "completedOrders", model: "seller_table_data" }
+    //     ])
+    //   if (buyer) {
+    //     return res.status(200).json({ sucess: true, user: buyer })
+    //   }
+    // } else {
+    //   return res.status(400).json({ success: false, Error: "users not Set" })
+    // }
   } catch (error) {
     res.status(500).json({ success: false, error: error.message })
   }
 })
 
 //update profile details
-app.post("/updateprofile", async(req,res) => {
+app.post("/updateprofile/:tokenId", async(req,res) => {
   try {
-      if(req.body.usertype === "buyer"){
-        const updateBuyer = await Buyer.findByIdAndUpdate({ _id: req.session.userid } , req.body , { new : true , runValidators : true })
-        return res.status(200).json({ success : true , message : "details updated success"})
-      }else if(req.body.usertype === "seller"){
-         const updateBuyer = await sellerUser.findByIdAndUpdate({ _id: req.session.userid } , req.body , { new : true , runValidators : true })
-        return res.status(200).json({ success : true , message : "details updated success"})
-      }
+
+    const decode = await jwt.verify(req.params.tokenId, "jsontokensss");
+    const updateBuyer = await Buyer.findByIdAndUpdate({ _id: decode.id }, req.body, { new: true, runValidators: true })
+    return res.status(200).json({ success: true, message: "details updated success" })
+
+
+      //   return res.status(200).json({ success : true , message : "details updated success"})
+      // if(req.body.usertype === "buyer"){
+      //   const updateBuyer = await Buyer.findByIdAndUpdate({ _id: req.session.userid } , req.body , { new : true , runValidators : true })
+      //   return res.status(200).json({ success : true , message : "details updated success"})
+      // }else if(req.body.usertype === "seller"){
+      //    const updateBuyer = await sellerUser.findByIdAndUpdate({ _id: req.session.userid } , req.body , { new : true , runValidators : true })
+      //   return res.status(200).json({ success : true , message : "details updated success"})
+      // }
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -136,12 +160,13 @@ app.get("/nearByUsers", async (req, res) => {
 });
 
 //status change to ongoing (buyer)
-app.post("/acceptOrder",async (req,res) => {
+app.post("/acceptOrder/:tokenId",async (req,res) => {
   try {
        
-        const usertype = await Buyer.findById({ _id: req.session.userid })
+        const decode = await jwt.verify(req.params.tokenId, "jsontokensss");
+        const usertype = await Buyer.findById({ _id: decode.id })
 
-        if (usertype.usertype === "buyer") {
+        if (usertype.role === "buyer") {
           const buyerData = await acceptedOrder.create(req.body)
           const usersellerDate = await sellerData.findByIdAndUpdate({ _id: req.body.soldDataId }, { orderStatus: "ongoing" }, { new: true, runValidators: true })
         } else {
@@ -155,22 +180,26 @@ app.post("/acceptOrder",async (req,res) => {
   }
 })
 
-// //get accepted order data(buyer)
-// app.get("/getacceptedOrders",auth,async (req,res) => {
-//   try {
+//get accepted order data(buyer)
+app.get("/getBuyeracceptedOrders/:tokenId",async (req,res) => {
+  try {
+    const decode = await jwt.verify(req.params.tokenId, "jsontokensss");
+    const usertype = await acceptedOrder.find({ buyerid: decode.id }).populate([
+      { path: "sellerid", model: "user_model" },
+      { path: "soldDataId", model: "seller_table_data" }
+    ])
+      return res.status(200).json({ success : true , Data : usertype })
     
-//     const usertype = await acceptedOrder.find({ buyerid : req.session.userid }).populate({ path: "acceptedOreders", model: "seller_user_table"})
-//       return res.status(200).json({ success : true , Data : usertype })
-    
-//   } catch (error) {
-//     res.status(500).json({ success: false, error: error.message })
-//   }
-// })
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
 
 //status change to completed order(buyer)
-app.post("/rejectOrder", async (req, res) => {
+app.post("/rejectOrder/:tokenId", async (req, res) => {
   try {
-    const usertype = await Buyer.findById({ _id: req.session.userid })
+    const decode = await jwt.verify(req.params.tokenId, "jsontokensss");
+    const usertype = await Buyer.findById({ _id: decode.id })
 
     if (usertype.usertype === "buyer") {
       const pullSellerData = await acceptedOrder.findByIdAndDelete({ _id: req.body.acceptedOrderId })
@@ -187,13 +216,14 @@ app.post("/rejectOrder", async (req, res) => {
 })
 
 //status change to completed order(buyer)
-app.get("/completeOrder", async (req,res) => {
+app.get("/completeOrder/:tokenId", async (req,res) => {
   try {
-        const usertype = await Buyer.findById({ _id: req.session.userid })
+        const decode = await jwt.verify(req.params.tokenId, "jsontokensss");
+        const usertype = await Buyer.findById({ _id: decode.id })
 
         if (usertype.usertype === "buyer") {
           const acceptTable = await acceptedOrder.findByIdAndDelete({ _id: req.body.acceptedOrderId })
-          const pushSellerData = await Buyer.findByIdAndUpdate({ _id: req.session.userid }, { $push: { "completedOrders": req.body.sellerdataId } }, { new: true, runValidators: true })
+          const pushSellerData = await Buyer.findByIdAndUpdate({ _id: decode.id}, { $push: { "History": req.body.sellerdataId } }, { new: true, runValidators: true })
           const usersellerData = await sellerData.findByIdAndUpdate({ _id: req.body.sellerdataId }, { orderStatus: "completed", boughtUser: req.session.userid }, { new: true, runValidators: true })
         } else {
           return res.status(400).json({ success: false, Erorr: "You are not Authorized to update details" })
